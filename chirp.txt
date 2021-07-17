@@ -1,0 +1,107 @@
+B = 5e6;% bandwidth 70MHz
+T = 50e-6;% pulse width 20us
+Fs = 10e6;% sampling rate or Nyquist rate
+N = T*Fs;
+t = -T/2:1/Fs:T/2-1/Fs;
+K = B/T;
+%%
+ St = exp(j*pi*K*t.^2);% signal
+ theta = pi*K*t.^2;% signal radians
+ f = K*t;% signal frequency
+ 
+figure
+ subplot(2,2,1);plot(real(St));title('signal real part');
+ subplot(2,2,2);plot(imag(St));title('signal imaginary part');
+ subplot(2,2,3);plot(theta);title('signal phase °');
+ subplot(2,2,4);plot(f);title('signal frequency Hz');
+ 
+figure;
+ plot(abs(fftshift(fft(St))));title('signal spectrum');
+
+
+s = abs(stft(St));
+plot(s);
+
+hold on;
+figure;
+        plot_data =abs(s);
+        imagesc(t,f,plot_data);
+        colorbar;
+        xlabel('Time');
+        ylabel('Frequency');
+        zlabel('Amplitude');
+        title('Spectrogram'); 
+        
+mf_sig = conj(fliplr(St));
+subplot(2,2,1);  plot(real(mf_sig));
+subplot(2,2,2);  plot(imag(mf_sig));
+
+subplot(2,2,3)
+mf_out = conv(St, mf_sig);
+plot(abs(mf_out(N/2+1:N*3/2)));
+title('Matched filter')
+time delay
+subplot(2,2,4);
+time_delay=zeros(1,length(t));
+mf_out1=[time_delay,mf_out];
+plot(abs(mf_out1),'r');
+title('time delay');
+
+Replicate matrix
+figure;
+n=100;
+size(mf_out);
+nk=size(mf_out,1);
+y_matrix=repmat(1:nk,[100 500]);
+yfft=fftshift(fft(y_matrix));
+plot(abs(yfft));
+
+input signal
+pulse=50;
+size(St);
+n1=size(St,1);
+y_m=repmat(1:n1,[50 500])
+yfft=fftshift(fft(y_m));
+plot(abs(yfft));
+imagesc(yfft);
+colorbar;
+
+pulse compression
+pc = conj(fliplr(yfft));
+subplot(2,2,1);  plot(real(pc));
+subplot(2,2,2);  plot(imag(pc));
+
+subplot(2,2,3)
+pc_out = conv2((yfft), (pc));
+plot(abs(pc_out(N/2+1:N*3/2)));
+title('Matched filter')
+
+subplot(2,2,4)
+%slowtime 
+l=length(pc_out);
+slow=[];
+slowtime=100;
+for R=1:l
+    for K=1:slowtime
+        slow(end+1)=pc_out(R);
+    end
+end
+
+prf=5e6;
+prt=1./prf;
+t1=-prt/2:1/prf:prt/2-1/prf;
+K1 = B/prt;
+f2 = K*t1;
+df=(fft(pc_out(N/2+1:N*3/2)));
+plot(df);
+pulse doppler
+figure;
+Num=10;
+v=3e8;
+sig=df(); %get the signal
+prf1=2*Fs; 
+lambda=v./f;
+fd=2*v*cos(pi/6)./lambda;
+vb=lambda*prf1./2;
+plot(vb,abs(df),'r');
+title('doppler freq');

@@ -1,0 +1,39 @@
+tic
+clc; 
+clear all; 
+close all;
+B = 5e6;% bandwidth 70MHz
+T = 50e-6;% pulse width 20us
+U = 10e6;% sampling rate or Nyquist rate
+N = T*Fs;
+t = -T/2:1/Fs:T/2-1/Fs;
+K = B/T;
+X=exp(j*pi*K*t.^2);% input signal
+
+a=pi./6; %input('Enter the rotation angle a (except 0) - ');
+p=0;q=0; 
+ for t = -T/2:1/Fs:T/2-1/Fs
+  p=p+1;
+    for u=-U:0.1:U;
+        q=q+1;
+%         x1(p,q)=(sqrt((1-j*cot(a))/(2*pi)))*exp(j*(((0.5*(u^2)+0.5*(t^2))*cot(a))-u*t*(1/sin(a))));
+        x1(p,q)=(sqrt(1-j*cot(a*pi/2)))*exp(j*pi*((u^2)*cot(a*pi/2)+(t^2)*cot(a*pi/2)-2*u*t*(1/sin(a*pi/2))));
+    end
+    q=0;
+ end
+ 
+ 
+u=-U:0.1:U;
+x2=0.01*(X*x1);
+% x3=20*log10(abs(x2)./max(x2));
+t = -T/2:1/Fs:T/2-1/Fs;
+figure,
+plot(t,X);xlabel('Time');ylabel('Amplitude');title('Input Function');
+figure,
+plot(abs(x2));
+xlabel('frequency');ylabel('Amplitude');title('Magnitude Response of FRFT');
+figure,
+plot(imag(x2));
+xlabel('frequency');ylabel('Amplitude');title('Imaginary part of FRFT');
+ 
+toc
